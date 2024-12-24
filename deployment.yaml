@@ -1,0 +1,34 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: greetings-frontend
+  labels:
+    app: greetings
+    type: frontend
+spec:
+  template:
+    metadata:
+      name: greetings-pod
+      labels:
+        app: greetings
+        type: backend
+    spec:
+      containers:
+        - name: greetings-frontend-container
+          image: greetings-frontend:latest
+          ports:
+            - containerPort: 80
+  replicas: 1
+  selector:
+    matchLabels:
+      app: greetings
+      type: frontend
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: greetings-frontend-service
+  labels:
+    app: greetings
+    type: backend
+
