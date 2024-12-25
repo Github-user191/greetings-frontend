@@ -3,7 +3,7 @@ import { ApplicationInsights } from '@microsoft/applicationinsights-web';
 
 const appInsights = new ApplicationInsights({
   config: {
-    connectionString: import.meta.env.VITE_APPLICATIONINSIGHTS_CONNECTION_STRING,
+    connectionString: import.meta.env.VITE_APPLICATIONINSIGHTS_CONNECTION_STRING || 'http://localhost:8080',
     enableAutoRouteTracking: true,
   }
 });
