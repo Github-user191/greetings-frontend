@@ -6,19 +6,21 @@ metadata:
     app: greetings
     type: frontend
 spec:
-  replicas: 1
   template:
     metadata:
-      name: greetings-pod
+      name: greetings-frontend-pod
       labels:
         app: greetings
-        type: backend
+        type: frontend
     spec:
       containers:
         - name: greetings-frontend-container
-          image: greetings-frontend:latest
+          image: dockerdemo786/greetings-frontend:1.0.0
           ports:
             - containerPort: 80
+          envFrom:
+            - configMapRef:
+                name: greetings-frontend-config
   selector:
     matchLabels:
       app: greetings
@@ -31,5 +33,21 @@ metadata:
   labels:
     app: greetings
     type: frontend
-  
-
+spec:
+  type: ClusterIP
+  ports:
+    - port: 80 
+      targetPort: 80
+      protocol: TCP
+  selector: # Selector to match the pods
+    app: greetings
+    type: frontend
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: greetings-frontend-config
+data:
+  VITE_APP_API_URL: http://localhost:8080
+  VITE_APPLICATIONINSIGHTS_CONNECTION_STRING: InstrumentationKey=6d237895-19d5-455d-aac5-f5470549db2d;
+  VITE_IS_STATIC: "true"

@@ -6,7 +6,8 @@
   "scripts": {
     "dev": "vite --mode development",
     "build": "vite build --mode production",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "docker:build-push": "./docker-build.sh"
   },
   "dependencies": {
     "@microsoft/applicationinsights-web": "^3.3.4",
