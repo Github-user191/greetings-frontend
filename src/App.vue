@@ -20,7 +20,6 @@ import { onBeforeMount, ref } from 'vue'
 import GreetingCard from './components/GreetingCard.vue'
 import { makeApiCall } from '../src/utils/api/makeApiCall.js'
 import { trackEvent} from './insights/customInsights.js';
-import { envConfig } from './utils/api/envConfig.js';
 
 const greetings = ref([]);
 
@@ -29,11 +28,11 @@ onBeforeMount(async () => {
 
   console.log('Current Mode:', import.meta.env.MODE)
   console.log('ENV', import.meta.env)
-  console.log(envConfig.isStaticSite())
 
+  const isStatic = import.meta.env.VITE_IS_STATIC === undefined ? true : import.meta.env.VITE_IS_STATIC === 'true'
 
-  if(!envConfig.isStaticSite()) {
-    greetings.value = await makeApiCall("GET", `api/greetings`);
+  if(!isStatic) {
+    greetings.value = await makeApiCall("GET", `/greetings`);
   } else {
 
     greetings.value = [
