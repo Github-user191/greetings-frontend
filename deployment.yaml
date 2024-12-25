@@ -6,6 +6,7 @@ metadata:
     app: greetings
     type: frontend
 spec:
+  replicas: 1
   template:
     metadata:
       name: greetings-pod
@@ -18,7 +19,6 @@ spec:
           image: greetings-frontend:latest
           ports:
             - containerPort: 80
-  replicas: 1
   selector:
     matchLabels:
       app: greetings
@@ -30,5 +30,6 @@ metadata:
   name: greetings-frontend-service
   labels:
     app: greetings
-    type: backend
+    type: frontend
+  
 

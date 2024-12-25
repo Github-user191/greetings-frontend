@@ -5,7 +5,7 @@ import { envConfig } from "./envConfig.js";
 
 const makeApiCall = async (method, path, data = null, config = {}) => {
 
-  const url = `${envConfig.getServerHostname()}/${path}`;
+  const url = `${envConfig.getApiUrl()}/${path}`;
   console.log(url)
     try {
       const response = await axios({
