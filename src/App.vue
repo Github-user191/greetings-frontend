@@ -1,7 +1,7 @@
 <template>
   <section class="greetings-page">
     <div class="greetings-container">
-      <h1 class="greetings-title">Welcome to the Greetings App!</h1>
+      <h1 class="greetings-title">Welcome {{ hostname }} to the Greetings App!</h1>
       <p class="greetings-description">Explore greetings from different cultures and languages.</p>
       <div class="greetings-grid" v-if="greetings?.length>0">
         <GreetingCard
@@ -22,7 +22,7 @@ import { makeApiCall } from '../src/utils/api/makeApiCall.js'
 import { trackEvent} from './insights/customInsights.js';
 
 const greetings = ref([]);
-
+const hostname = ref('');
 
 onBeforeMount(async () => {
 
@@ -32,7 +32,9 @@ onBeforeMount(async () => {
   const isStatic = import.meta.env.VITE_IS_STATIC === undefined ? true : import.meta.env.VITE_IS_STATIC === 'true'
 
   if(!isStatic) {
-    greetings.value = await makeApiCall("GET", `/api/greetings`);
+    const data = await makeApiCall("GET", `/api/greetings`);
+    greetings.value = data.greetings;
+    hostname.value = data.hostname;
   } else {
 
     greetings.value = [
