@@ -32,7 +32,7 @@ onBeforeMount(async () => {
   const isStatic = import.meta.env.VITE_IS_STATIC === undefined ? true : import.meta.env.VITE_IS_STATIC === 'true'
 
   if(!isStatic) {
-    greetings.value = await makeApiCall("GET", `/greetings`);
+    greetings.value = await makeApiCall("GET", `/api/greetings`);
   } else {
 
     greetings.value = [
