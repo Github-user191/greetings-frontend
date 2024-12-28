@@ -21,6 +21,15 @@ USERNAME="dockerdemo786"  # Replace with your Docker Hub username
 IMAGE_NAME="greetings-frontend"
 FULL_IMAGE_NAME="$USERNAME/$IMAGE_NAME"
 
+# Collect build args if provided
+BUILD_ARGS=()
+if [ $# -gt 2 ]; then
+    shift 2
+    for arg in "$@"; do
+        BUILD_ARGS+=("$arg")
+    done
+fi
+
 # Check if specified Dockerfile exists
 if [ ! -f "$DOCKERFILE" ]; then
     echo "Error: Dockerfile not found at path: $DOCKERFILE"
@@ -29,13 +38,16 @@ fi
 
 echo "🚀 Building and pushing $FULL_IMAGE_NAME:$VERSION"
 
+echo "Build args: ${BUILD_ARGS[@]}"
+
 # Build the image with specified Dockerfile
 echo "📦 Building Docker image..."
 docker build --platform linux/amd64 \
-    --build-arg "VITE_IS_STATIC=true" \
     -f "$DOCKERFILE" \
     -t $IMAGE_NAME \
-    --no-cache .
+    --no-cache . \
+    "${BUILD_ARGS[@]}"
+    
 
 # Tag the image with version and latest
 echo "🏷️ Tagging images..."
