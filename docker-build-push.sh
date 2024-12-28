@@ -3,7 +3,7 @@
 show_usage() {
     echo "Usage: ./docker-build.sh <version-tag> [dockerfile-path]"
     echo "Example: ./docker-build.sh 1.0.0"
-    echo "Example with custom Dockerfile: ./docker-build.sh 1.0.0 docker/Dockerfile.standalone"
+    echo "Example with custom Dockerfile and args: ./docker-build.sh 1.0.0 Dockerfile.standalone --build-arg VITE_IS_STATIC=true"
 }
 
 # Check if version tag is provided
@@ -52,11 +52,11 @@ docker build --platform linux/amd64 \
 # Tag the image with version and latest
 echo "🏷️ Tagging images..."
 docker tag $IMAGE_NAME:latest $FULL_IMAGE_NAME:$VERSION
-docker tag $IMAGE_NAME:latest $FULL_IMAGE_NAME:latest
+#docker tag $IMAGE_NAME:latest $FULL_IMAGE_NAME:latest
 
 # Push the images
 echo "⬆️ Pushing images to Docker Hub..."
 docker push $FULL_IMAGE_NAME:$VERSION
-docker push $FULL_IMAGE_NAME:latest
+#docker push $FULL_IMAGE_NAME:latest
 
 echo "✅ Successfully built and pushed $FULL_IMAGE_NAME:$VERSION and $FULL_IMAGE_NAME:latest"
