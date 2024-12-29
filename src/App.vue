@@ -29,14 +29,17 @@ onBeforeMount(async () => {
   console.log('Current Mode:', import.meta.env.MODE)
   console.log('ENV', import.meta.env)
 
-  const isStatic = import.meta.env.VITE_IS_STATIC === undefined ? true : import.meta.env.VITE_IS_STATIC === 'true'
+  console.log("import.meta.env.VITE_IS_STATIC", import.meta.env.VITE_IS_STATIC)
+  const isStatic = import.meta.env.VITE_IS_STATIC === undefined ? false : import.meta.env.VITE_IS_STATIC === 'true'
 
+  console.log("isStatic", isStatic)
   if(!isStatic) {
     const data = await makeApiCall("GET", `/api/greetings`);
     greetings.value = data.greetings;
     hostname.value = data.hostname;
   } else {
 
+    console.log("in mem call")
     greetings.value = [
       { Id: 1, Language: "English", Greeting: "Hello" },
       { Id: 2, Language: "Spanish", Greeting: "Hola" },

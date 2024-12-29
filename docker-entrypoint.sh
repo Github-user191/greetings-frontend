@@ -1,21 +1,35 @@
 #!/bin/sh
 
-# Define the proxy configuration
-if [ "${ENABLE_BACKEND_PROXY}" = "true" ]; then
-    proxy_config="location /api/ {
-        proxy_pass http://greetings-backend:8080;
+# Define the API location block
+api_location_block=$(cat <<EOF
+    location /api/ {
+        proxy_pass ${VITE_APP_API_URL};
         proxy_set_header Host \$host;
         proxy_set_header X-Real-IP \$remote_addr;
         proxy_set_header X-Forwarded-For \$proxy_add_x_forwarded_for;
         proxy_set_header X-Forwarded-Proto \$scheme;
-    }"
-else
-    proxy_config=""
+        error_page 502 503 504 = /index.html;
+    }
+EOF
+)
+
+echo "VITE_IS_STATIC: $VITE_IS_STATIC"
+echo "VITE_APP_API_URL: $VITE_APP_API_URL"
+
+# Generate API location block or leave it empty based on VITE_IS_STATIC
+if [ "$VITE_IS_STATIC" = "true" ]; then
+    api_location_block=""
 fi
 
-# Replace the placeholder in the template
-export PROXY_CONFIG="$proxy_config"
-envsubst '${PROXY_CONFIG}' < /etc/nginx/templates/nginx.conf.template > /etc/nginx/conf.d/default.conf
+echo "API_LOCATION_BLOCK: $api_location_block"
+# Replace environment variables in the template
+envsubst '${VITE_APP_API_URL}' < /etc/nginx/templates/default.conf.template > /etc/nginx/conf.d/default.conf
 
-# Start nginx
-exec nginx -g 'daemon off;'
+# Inject the API location block into the configuration
+if [ -n "$api_location_block" ]; then
+    awk -v block="$api_location_block" '/# Handle \/api/ {print; print block; next}1' /etc/nginx/conf.d/default.conf > /tmp/default.conf
+    mv /tmp/default.conf /etc/nginx/conf.d/default.conf
+fi
+
+# Start Nginx
+exec "$@"
