@@ -38,7 +38,7 @@
         </div>
       </div>
 
-      <div v-if="greetings?.length > 0" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+      <div v-if="greetings.length > 0" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
         <GreetingCard
           v-for="(item, index) in greetings"
           :key="index"
@@ -55,128 +55,83 @@
 <script setup>
 import { onBeforeMount, ref } from 'vue'
 import { makeApiCall } from '../src/utils/api/makeApiCall.js'
-import { trackEvent} from './insights/customInsights.js';
+import { trackEvent } from './insights/customInsights.js';
 import GreetingCard from './components/GreetingCard.vue';
 import { toast } from "vue3-toastify";
+import inMemoryGreetings from './data/greetings.js';
 
-    
 const greetings = ref([]);
 const hostname = ref('');
 const language = ref('');
 const greeting = ref('');
-const isStatic = import.meta.env.VITE_IS_STATIC === undefined ? false : import.meta.env.VITE_IS_STATIC === 'true'
+const isStatic = import.meta.env.VITE_IS_STATIC === 'true';
+
 
 onBeforeMount(async () => {
-  
-  
-  if(!isStatic) {
-    const data = await makeApiCall("GET", `/api/greetings`);
-    greetings.value = data.greetings.sort((a, b) => b.id -a.id);
+  if (!isStatic) {
+    const data = await makeApiCall("GET", "/api/greetings");
+    greetings.value = data.greetings.sort((a, b) => b.id - a.id);
     hostname.value = data.hostname;
   } else {
-    greetings.value = [
-      { id: 1, language: "English", greeting: "Hello" },
-      { id: 2, language: "Spanish", greeting: "Hola" },
-      { id: 3, language: "French", greeting: "Bonjour" },
-      { id: 4, language: "German", greeting: "Hallo" },
-      { id: 5, language: "Italian", greeting: "Ciao" },
-      { id: 6, language: "Japanese", greeting: "こんにちは" },
-      { id: 7, language: "Chinese", greeting: "你好" },
-      { id: 8, language: "Hindi", greeting: "नमस्ते" },
-      { id: 9, language: "Russian", greeting: "Привет" },
-      { id: 10, language: "Portuguese", greeting: "Olá" },
-      { id: 11, language: "Arabic", greeting: "أهلاً" },
-      { id: 12, language: "Korean", greeting: "안녕하세요" },
-      { id: 13, language: "Dutch", greeting: "Hallo" },
-      { id: 14, language: "Swedish", greeting: "Hej" },
-      { id: 15, language: "Turkish", greeting: "Merhaba" }
-    ];
-
-  
+    greetings.value = inMemoryGreetings.sort((a, b) => b.id - a.id);;
   }
-})
-
+});
 
 const addNewGreeting = async () => {
   try {
+    const newEntry = { language: language.value, greeting: greeting.value };
 
-    if (!isStatic) {
-      const newEntry = {
-        language: language.value,
-        greeting: greeting.value,
-      };
-
-      // Make the API call
-      const response = await makeApiCall("POST", `/api/greetings`, newEntry);
-
-      if (response?.success) {
-
-        greetings.value.unshift(response.data);
-
-        console.log("greetings ", greetings.value)
-
-        toast.success("Greeting added successfully to the database.");
+    if (isStatic) {
+      if (greetings.value.some(item => item.language === language.value)) {
+        toast.error("Greeting already exists for this language.");
       } else {
-        const errorData = await response.json();
-        console.error("Failed to add greeting:", errorData.error);
-        const message = errorData.error || (errorData.request ? "Network error: Unable to reach the server." : "An unexpected error occurred.");
-        toast.error(message);
+        const newId = greetings.value.length + 1;
+        greetings.value.unshift({ ...newEntry, id: newId });
+        toast.success("Greeting added successfully to the in-memory list.");
       }
     } else {
-      const newId = greetings.value.length + 1;
-      const newEntry = {
-        id: newId,
-        language: language.value,
-        greeting: greeting.value,
-      };
-
-      greetings.value.push(newEntry);
-      toast.success("Greeting added successfully to the in-memory list.");
+      const response = await makeApiCall("POST", "/api/greetings", newEntry);
+      if (response?.success) {
+        greetings.value.unshift(response.data);
+        toast.success("Greeting added successfully to the database.");
+      } else {
+        handleError(response);
+      }
     }
 
-    // Track the event
-    trackEvent("AddNewGreeting", {
-      language: language.value,
-      greeting: greeting.value,
-    });
+    trackEvent("AddNewGreeting", { language: language.value, greeting: greeting.value });
 
-    // Clear input fields
     language.value = '';
     greeting.value = '';
   } catch (error) {
-    console.error('Add greeting failed:', error); 
+    console.error('Add greeting failed:', error);
+    toast.error("An unexpected error occurred.");
   }
 };
-
 
 const deleteGreeting = async (id) => {
   try {
-    if (!isStatic) {
-      const response = await makeApiCall("DELETE", `/api/greetings/${id}`);
-      console.log("response:", response);
+    const response = isStatic
+      ? { success: true } // In-memory deletion is always successful
+      : await makeApiCall("DELETE", `/api/greetings/${id}`);
 
-      if (response.success) {
-        greetings.value = greetings.value.filter((item) => item.id !== id);
-        toast.success("Greeting deleted successfully from the database.");
-      } else {
-        console.error("Failed to delete greeting:", response.error);
-        toast.error(response.error || "Failed to delete greeting.");
-      }
+    if (response.success) {
+      greetings.value = greetings.value.filter(item => item.id !== id);
+      toast.success("Greeting deleted successfully.");
     } else {
-      // Handle the in-memory case
-      greetings.value = greetings.value.filter((item) => item.id !== id);
-      toast.success("Greeting deleted successfully from in-memory list.");
+      handleError(response);
     }
   } catch (error) {
     console.error("Error deleting greeting:", error);
-
-    // Handle known error formats from the API
-    const errorMessage = error.response?.data?.error || error.message || "An unexpected error occurred while deleting the greeting.";
-    toast.error(errorMessage);
+    toast.error("An unexpected error occurred while deleting the greeting.");
   }
 };
 
-
+const handleError = async (response) => {
+  const errorData = await response.json();
+  console.error("Error:", errorData.error);
+  toast.error(errorData.error || "An unexpected error occurred.");
+};
 </script>
 
 <style>
