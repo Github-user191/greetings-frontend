@@ -11,8 +11,8 @@ server {
     gzip_types text/plain text/css application/json application/javascript text/xml application/xml application/xml+rss text/javascript;
     gzip_min_length 1000;
 
-    # Handle /api
-    # Placeholder for the API location block, dynamically added by entrypoint script
+    # Placeholder for API location block - will be replaced by entrypoint script
+    ${PROXY_CONFIG}
 
     location / {
         try_files $uri $uri/ /index.html;

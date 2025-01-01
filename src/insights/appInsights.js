@@ -8,6 +8,8 @@ const appInsights = new ApplicationInsights({
   }
 });
 
+console.log("app insights config", appInsights.config)
+
 appInsights.loadAppInsights();
 appInsights.trackPageView();
 

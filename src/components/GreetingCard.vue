@@ -1,5 +1,5 @@
 <template>
-  <div class="greeting-card" @click="handleGreetingClick(language, greeting)">
+  <div class="greeting-card" @click="handleDeleteClick(id)">
     <div class="card-content">
       <h2 class="language">{{ language }}</h2>
       <p class="greeting">{{ greeting }}</p>
@@ -10,72 +10,78 @@
 <script setup>
 import {trackEvent} from '../insights/customInsights';
 
+const emit = defineEmits(['delete'])
 
 defineProps({
+    id: Number,
     language: String,
     greeting: String
 })
 
-const handleGreetingClick = (language, greeting) => {
-    trackEvent("GreetingClicked", {
-        language: language,
-        greeting: greeting
-    })
-}
 
+const handleDeleteClick = (id) => {
+    trackEvent("DeleteGreeting", { id: id})
+    emit('delete', id)
+}
 
 </script>
 
 <style scoped>
 .greeting-card {
-    background: linear-gradient(135deg, #6e7fdb, #8a6fff);
-    color: #ffffff;
-    padding: 2rem;
-    border-radius: 20px;
-    text-align: center;
-    box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2);
-    transition: transform 0.3s ease, box-shadow 0.3s ease, background 0.3s ease;
-    cursor: pointer;
-    overflow: hidden;
-}
-
-.greeting-card:hover {
-    transform: translateY(-15px);
-    box-shadow: 0 15px 30px rgba(0, 0, 0, 0.3);
-    background: linear-gradient(135deg, #8a6fff, #6e7fdb);
+  background: white;
+  padding: 1.5rem;
+  border-radius: 16px;
+  text-align: left;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  position: relative;
+  border: 2px solid #f3f4f6;
 }
 
 .card-content {
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
+  position: relative;
+  z-index: 2;
+}
+
+.greeting-card::before {
+  content: '';
+  position: absolute;
+  top: 1rem;
+  right: 1rem;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: #3B82F6;
+  transition: all 0.3s ease;
+  opacity: 0.1;
+}
+
+.greeting-card:hover {
+  border-color: #3B82F6;
+}
+
+.greeting-card:hover::before {
+  transform: scale(10);
+  opacity: 0.05;
 }
 
 .language {
-    font-size: 1.8rem;
-    font-weight: 700;
-    letter-spacing: 1px;
-    text-transform: uppercase;
-    margin-bottom: 1rem;
-    animation: fadeIn 0.8s ease-out;
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: #1F2937;
+  margin-bottom: 0.5rem;
+  overflow-wrap: break-word; /* Prevents long words from overflowing */
 }
 
 .greeting {
-    font-size: 1.4rem;
-    font-weight: 500;
-    color: #f0f4fc;
-    animation: fadeIn 1s ease-out;
-}
-
-@keyframes fadeIn {
-    0% {
-        opacity: 0;
-        transform: translateY(10px);
-    }
-
-    100% {
-        opacity: 1;
-        transform: translateY(0);
-    }
+  font-size: 1rem;
+  color: #6B7280;
+  overflow-wrap: break-word; /* Wrap long words */
+  word-break: break-word; /* For older browsers */
+  white-space: pre-wrap; /* Preserve line breaks and whitespace */
+  max-height: 5rem; /* Optional: Limit the height */
+  overflow: hidden; /* Hide overflowing text */
+  text-overflow: ellipsis; /* Add ellipsis for overflowing text */
 }
 </style>
+

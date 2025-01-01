@@ -1,5 +1,6 @@
 import axios from 'axios';
 import { trackEvent, trackException } from '../../insights/customInsights.js';
+import { toast } from 'vue3-toastify';
 
 const apiUrl = import.meta.env.VITE_APP_API_URL || ''; // Load API URL from environment variables
 
@@ -30,15 +31,20 @@ const makeApiCall = async (method, path, data = null, config = {}) => {
 
     return response.data;
   } catch (error) {
+    const errorMessage = error.response?.data?.error || error.message || "An unexpected error occurred";
+
     trackException('apiFailure', {
       url: path,
       method,
       requestData: JSON.stringify(data),
-      error: error.message || error,
+      statusCode: error.response?.status || 'unknown',
+      error: errorMessage,
     });
 
-    console.error('API call error:', error.message || error);
-    throw error; 
+    console.error('API call error:', errorMessage);
+    toast.error(errorMessage);
+
+    throw error; // Re-throw the error for further handling if necessary
   }
 };
 
